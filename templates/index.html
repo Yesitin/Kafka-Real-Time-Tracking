@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Truck Tracker</title>
+    <script src='https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js'></script>
+    <link href='https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css' rel='stylesheet' />
+    <style>
+        #map {
+            width: 100%;
+            height: 900px;
+        }
+
+        #speedometer {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 10px;
+            border-radius: 10px;
+            font-family: Arial, sans-serif;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="map"></div>
+
+    <div id="speedometer">
+        <h2>Driver: <span>Torben Nightshade</span></h2>
+        <h2>Truck: <span id="truckId">GRV-3254</span></h2>
+        <h2>Speed: <span id="speed">0</span> km/h</h2>
+    </div>
+            
+    <script>
+        mapboxgl.accessToken = 'your_api_key';
+        // Initialize the map
+        const map = new mapboxgl.Map({
+            container: 'map', 
+            style: 'mapbox://styles/mapbox/streets-v11', 
+            center: [11.567407034078599, 48.17680922721607], // starting at depot
+            zoom: 5 
+        });
+
+        let truckMarkers = {};
+
+        function updateMarker(coordinates, truckId) {
+            console.log("Updating marker for truck:", truckId, " at coordinates:", coordinates);
+
+            if (truckMarkers[truckId]) {
+                truckMarkers[truckId].setLngLat(coordinates);
+            } else {
+                const marker = new mapboxgl.Marker()
+                    .setLngLat(coordinates)  
+                    .addTo(map);  
+
+                truckMarkers[truckId] = marker;
+            }
+        }
+
+        // Function to update speedometer
+        function updateSpeedometer(truckId, speed) {
+            document.getElementById("truckId").innerText = truckId;  
+            document.getElementById("speed").innerText = speed; 
+        }
+
+        // Function to process incoming data
+        function processStreamData(obj) {
+            console.log("Processing truck data:", obj);
+
+            // Check if the object has valid latitude, longitude, and speed
+            if (obj.latitude && obj.longitude && obj.speed !== undefined) {
+                const coordinates = [obj.longitude, obj.latitude]; 
+                const truckId = obj.truck;  
+                const speed = obj.speed;  
+
+                // Update or create a new marker
+                updateMarker(coordinates, truckId);
+
+                // Update the speedometer
+                updateSpeedometer(truckId, speed);
+            } else {
+                console.error("Invalid data: latitude, longitude, or speed missing.");
+            }
+        }
+
+        // Set up EventSource to receive data stream from Kafka topic
+        var source = new EventSource('http://localhost:5001/topic/geodata');
+
+        source.addEventListener('message', function(e) {
+            console.log('Raw message received: ', e.data);
+            const obj = JSON.parse(e.data); 
+            processStreamData(obj); 
+        }, false);
+
+    </script>
+
+</body>
+</html>
