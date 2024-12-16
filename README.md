@@ -1,6 +1,6 @@
 # Kafka-real-time-tracking
 
-This project is about real-time tracking of vehicle location with Kafka. It simulates a data stream with incoming coordinates and the respective speed of a certain truck. The real time location of the truck is displayed on an interactive map where the location gets updated every second a new coordinates and its speed comes in. The map is provided by an API of Mapbox. This whole project run as a flask application.
+This project is about real-time tracking of vehicle location with Kafka. It simulates a data stream with incoming coordinates and the respective speed of a certain truck. The real time location of the truck is displayed on an interactive map where the location gets updated every second a new coordinates and its speed comes in. The map is provided by an API of Mapbox. This whole project run as a flask application. 
 
 
 The project consists of the following files:
